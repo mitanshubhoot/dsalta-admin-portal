@@ -4,7 +4,7 @@ services:
     name: admin-portal-api
     env: node
     region: oregon
-    plan: free
+    plan: starter
     buildCommand: cd server && npm ci && npm run build
     startCommand: cd server && npm start
     envVars:
