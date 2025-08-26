@@ -1,0 +1,20 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy backend package files
+COPY server/package*.json ./
+RUN npm ci --only=production
+
+# Copy backend source and build
+COPY server/tsconfig.json ./
+COPY server/src ./src
+RUN npm run build
+
+# Remove dev dependencies and source files
+RUN rm -rf src tsconfig.json
+RUN npm prune --production
+
+EXPOSE 10000
+
+CMD ["npm", "start"]

@@ -1,0 +1,76 @@
+# Docker Compose configuration for Admin Activity Portal
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:QBfttMrAZ3yeHvMcuWGTBTOV9yY4rPBpqGSiaD9IEpdRzuQgz9A7EXXgLPC2io0l@35.208.35.166:5433/postgres
+      - JWT_SECRET=your-super-secure-jwt-secret-key-change-this-in-production
+      - JWT_EXPIRES_IN=24h
+      - ADMIN_EMAIL=admin@dsalta.com
+      - ADMIN_PASSWORD=admin123456
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - CORS_ORIGIN=http://localhost:3000
+      - LOG_LEVEL=info
+    volumes:
+      - ./server/logs:/app/logs
+    # Note: Uses external database from main Dsalta app
+    # depends_on:
+    #   - postgres
+    networks:
+      - admin-portal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://server:3001/api
+    depends_on:
+      - server
+    networks:
+      - admin-portal-network
+    restart: unless-stopped
+
+  # PostgreSQL service removed - using external database from main Dsalta app
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     - POSTGRES_DB=${POSTGRES_DB:-admin_portal}
+  #     - POSTGRES_USER=${POSTGRES_USER:-admin}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin123}
+  #   ports:
+  #     - "5433:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./server/src/db/migrations:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - admin-portal-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-admin_portal}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# volumes:
+#   postgres_data:
+
+networks:
+  admin-portal-network:
+    driver: bridge

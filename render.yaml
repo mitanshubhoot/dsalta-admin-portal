@@ -1,0 +1,36 @@
+services:
+  # Backend API Service
+  - type: web
+    name: admin-portal-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm ci && npm run build
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        value: postgresql://postgres:QBfttMrAZ3yeHvMcuWGTBTOV9yY4rPBpqGSiaD9IEpdRzuQgz9A7EXXgLPC2io0l@35.208.35.166:5433/postgres
+      - key: ADMIN_EMAIL
+        value: admin@dsalta.com
+      - key: ADMIN_PASSWORD
+        value: admin123456
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this-in-production
+      - key: CORS_ORIGIN
+        value: https://admin-portal-web.onrender.com
+    
+  # Frontend Web Service  
+  - type: web
+    name: admin-portal-web
+    env: static
+    region: oregon 
+    plan: free
+    buildCommand: cd web && npm ci && npm run build
+    staticPublishPath: ./web/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://admin-portal-api.onrender.com
