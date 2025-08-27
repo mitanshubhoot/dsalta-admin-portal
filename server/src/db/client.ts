@@ -8,7 +8,7 @@ export class DatabaseClient {
   constructor() {
     this.pool = new Pool({
       connectionString: config.DATABASE_URL,
-      ssl: config.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: false,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
